@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: lesson_plan_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lesson_plans
+    ports:
+      - "5432:5432"
+    volumes:
+      - lesson_plan_pg_data:/var/lib/postgresql/data
+
+volumes:
+  lesson_plan_pg_data:
