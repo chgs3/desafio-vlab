@@ -35,17 +35,14 @@ select {
   border-bottom: 1px solid #e6e8ef;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .brand {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.app-header nav a {
+  font-size: 26px;
+  font-weight: 800;
   color: #3656d4;
-  font-weight: 600;
+  letter-spacing: -0.04em;
 }
 
 .app-main {
