@@ -20,6 +20,40 @@ app.use(express.json());
 app.use(
   pinoHttp({
     logger,
+
+    autoLogging: {
+      ignore: (request) => request.url === "/health",
+    },
+
+    customSuccessMessage: () => "http.request.completed",
+
+    customErrorMessage: () => "http.request.failed",
+
+    serializers: {
+      req(request) {
+        return {
+          id: request.id,
+          method: request.method,
+          url: request.url,
+          remoteAddress: request.remoteAddress,
+        };
+      },
+
+      res(response) {
+        return {
+          statusCode: response.statusCode,
+        };
+      },
+    },
+
+    customProps(request, response) {
+      return {
+        event: "http.request",
+        method: request.method,
+        url: request.url,
+        statusCode: response.statusCode,
+      };
+    },
   })
 );
 

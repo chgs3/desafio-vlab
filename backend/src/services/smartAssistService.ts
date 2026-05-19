@@ -10,6 +10,8 @@ import {
 
 import { AppError } from "../utils/AppError";
 
+const AI_MODEL = "gemini-2.5-flash";
+
 if (!env.AI_API_KEY) {
   throw new Error("AI_API_KEY is not configured");
 }
@@ -19,9 +21,7 @@ const ai = new GoogleGenAI({
 });
 
 export class SmartAssistService {
-  async generateRecommendations(
-    input: SmartAssistRequestInput
-  ) {
+  async generateRecommendations(input: SmartAssistRequestInput) {
     const startTime = Date.now();
 
     const prompt = `
@@ -61,7 +61,7 @@ Regras:
     try {
       const response = await Promise.race([
         ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: AI_MODEL,
           contents: prompt,
         }),
 
@@ -75,9 +75,7 @@ Regras:
 
       const latencyMs = Date.now() - startTime;
 
-      const text =
-        (response as any).text?.trim() ??
-        "";
+      const text = ((response as { text?: string }).text ?? "").trim();
 
       const cleanedText = text
         .replace(/```json/g, "")
@@ -86,32 +84,57 @@ Regras:
 
       const parsedJson = JSON.parse(cleanedText);
 
-      const validated =
-        smartAssistResponseSchema.parse(parsedJson);
+      const validated = smartAssistResponseSchema.parse(parsedJson);
+
+      const tokenUsage =
+        (response as {
+          usageMetadata?: {
+            totalTokenCount?: number;
+          };
+        }).usageMetadata?.totalTokenCount ?? null;
+
+      const latencySeconds = Number((latencyMs / 1000).toFixed(2));
 
       logger.info({
-        message: "AI Request completed",
+        event: "ai.request.completed",
+        provider: env.AI_PROVIDER ?? "gemini",
+        model: AI_MODEL,
         title: input.title,
         discipline: input.discipline,
+        tokenUsage,
         latencyMs,
+        latencySeconds,
+        status: "success",
+        msg: `AI Request: Title="${input.title}", Discipline="${input.discipline}", TokenUsage=${tokenUsage ?? "N/A"}, Latency=${latencySeconds}s`,
       });
 
       return validated;
     } catch (error) {
       const latencyMs = Date.now() - startTime;
 
+      const latencySeconds = Number((latencyMs / 1000).toFixed(2));
+
       logger.error({
-        message: "AI Request failed",
+        event: "ai.request.failed",
+        provider: env.AI_PROVIDER ?? "gemini",
+        model: AI_MODEL,
         title: input.title,
         discipline: input.discipline,
+        tokenUsage: null,
         latencyMs,
-        error,
+        latencySeconds,
+        status: "error",
+        error:
+          error instanceof Error
+            ? {
+                name: error.name,
+                message: error.message,
+              }
+            : error,
+        msg: `AI Request Failed: Title="${input.title}", Discipline="${input.discipline}", TokenUsage=N/A, Latency=${latencySeconds}s`,
       });
 
-      throw new AppError(
-        "Unable to generate AI recommendations",
-        500
-      );
+      throw new AppError("Unable to generate AI recommendations", 500);
     }
   }
 }

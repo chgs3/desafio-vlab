@@ -9,6 +9,15 @@ const envSchema = z.object({
   AI_PROVIDER: z.string().optional(),
   AI_API_KEY: z.string().optional(),
   AI_TIMEOUT_MS: z.coerce.number().default(15000),
+
+  LOG_LEVEL: z
+    .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
+    .default("info"),
+
+  LOG_PRETTY: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
