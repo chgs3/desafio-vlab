@@ -3,6 +3,7 @@ import {
   ListLessonPlansQuery,
   UpdateLessonPlanInput,
 } from "../schemas/lessonPlanSchemas";
+import { AppError } from "../utils/AppError";
 import { LessonPlanRepository } from "../repositories/lessonPlanRepository";
 
 export class LessonPlanService {
@@ -20,7 +21,7 @@ export class LessonPlanService {
     const lessonPlan = await this.lessonPlanRepository.findById(id);
 
     if (!lessonPlan) {
-      throw new Error("LESSON_PLAN_NOT_FOUND");
+      throw new AppError("Lesson plan not found", 404);
     }
 
     return lessonPlan;
