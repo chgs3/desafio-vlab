@@ -70,6 +70,7 @@ export class LessonPlanRepository {
     if (plannedDate) {
       const start = new Date(plannedDate);
       const end = new Date(plannedDate);
+
       end.setDate(end.getDate() + 1);
 
       where.plannedDate = {
@@ -78,23 +79,30 @@ export class LessonPlanRepository {
       };
     }
 
-    if (tag) {
-      where.tags = {
-        array_contains: [tag],
-      } as Prisma.JsonFilter<"LessonPlan">;
-    }
+    const allData = await prisma.lessonPlan.findMany({
+      where,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
 
-    const [data, total] = await Promise.all([
-      prisma.lessonPlan.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
-      }),
-      prisma.lessonPlan.count({ where }),
-    ]);
+    const filteredByTag = tag
+      ? allData.filter((plan) => {
+          if (!Array.isArray(plan.tags)) {
+            return false;
+          }
+
+          return plan.tags.some(
+            (item) =>
+              typeof item === "string" &&
+              item.toLowerCase().includes(tag.toLowerCase())
+          );
+        })
+      : allData;
+
+    const total = filteredByTag.length;
+
+    const data = filteredByTag.slice(skip, skip + limit);
 
     return {
       data,
