@@ -25,9 +25,46 @@ export class LessonPlanRepository {
   }
 
   async update(id: string, data: UpdateLessonPlanInput) {
+    const updateData: Prisma.LessonPlanUpdateInput = {};
+
+    if (data.title !== undefined) {
+      updateData.title = data.title;
+    }
+
+    if (data.objective !== undefined) {
+      updateData.objective = data.objective;
+    }
+
+    if (data.summary !== undefined) {
+      updateData.summary = data.summary;
+    }
+
+    if (data.plannedDate !== undefined) {
+      updateData.plannedDate = data.plannedDate;
+    }
+
+    if (data.discipline !== undefined) {
+      updateData.discipline = data.discipline;
+    }
+
+    if (data.contents !== undefined) {
+      updateData.contents =
+        data.contents as Prisma.InputJsonValue;
+    }
+
+    if (data.supportResources !== undefined) {
+      updateData.supportResources =
+        data.supportResources as Prisma.InputJsonValue;
+    }
+
+    if (data.tags !== undefined) {
+      updateData.tags =
+        data.tags as Prisma.InputJsonValue;
+    }
+
     return prisma.lessonPlan.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 

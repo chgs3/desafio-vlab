@@ -10,6 +10,10 @@ import {
 
 import { AppError } from "../utils/AppError";
 
+if (!env.AI_API_KEY) {
+  throw new Error("AI_API_KEY is not configured");
+}
+
 const ai = new GoogleGenAI({
   apiKey: env.AI_API_KEY,
 });

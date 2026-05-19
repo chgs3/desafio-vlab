@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16
-    container_name: lesson_plan_db
+    container_name: desafio_vlab_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -10,6 +10,40 @@ services:
       - "5432:5432"
     volumes:
       - lesson_plan_pg_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        DATABASE_URL: postgresql://postgres:postgres@db:5432/lesson_plans
+
+    container_name: desafio_vlab_backend
+
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/lesson_plans
+      PORT: 3333
+      FRONTEND_URL: http://localhost:5173
+      AI_PROVIDER: gemini
+      AI_API_KEY: ${AI_API_KEY}
+      AI_TIMEOUT_MS: 15000
+      NODE_ENV: production
+
+    ports:
+      - "3333:3333"
+
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:3333
+    container_name: desafio_vlab_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
 
 volumes:
   lesson_plan_pg_data:
